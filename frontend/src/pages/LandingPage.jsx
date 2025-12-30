@@ -1,6 +1,12 @@
+import Intro_Section from "../components/Intro-section";
+import Navigation_Bar from "../components/navigationBar";
+
 const LandingPage = () => {
     return (
-       <h1>Welcome to the Landing Page</h1>
+      <>
+       <Navigation_Bar/>
+       <Intro_Section/>
+      </>
     )
 }
 
