@@ -10,14 +10,19 @@ import FAQSections from "../components/FAQSections";
 const LandingPage = () => {
     return (
       <>
-        <NavBar />
-        <IntroSectionLanding /> 
-        <AboutUsLanding />
-        <EventLanding />
-        <GallerySection/>
-        <FAQSections/>
-        <Footer/>
-        <ArrowButton/>
+        <>
+      <NavBar onChatToggle={() => setIsChatBoxOpen((prev) => !prev)} />
+      <IntroSectionLanding />
+      <AboutUsLanding />
+      <SloganPart />
+      <MemberIntro />
+      <EventLanding />
+      <GallerySection />
+      <FAQSections onChatToggle={() => setIsChatBoxOpen((prev) => !prev)} />
+      <Footer />
+      <ArrowButton />
+      <AssistantChatbox isOpen={isChatBoxOpen} onClose={() => setIsChatBoxOpen(false)} />
+    </>
       </>
     )
 }
