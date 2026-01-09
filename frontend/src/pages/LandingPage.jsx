@@ -13,10 +13,9 @@ const LandingPage = () => {
       <NavBar />
       <IntroSectionLanding />
       <AboutUsLanding />
+      <MemberIntro />
       <EventLanding />
       <GallerySection />
-
-      <MemberIntro />
       <Footer />
       <ArrowButton />
     </>
