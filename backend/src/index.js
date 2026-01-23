@@ -78,10 +78,10 @@ app.get("/api/members", (req, res) => {
 });
 
 // =====================
-// 4) Routes (MỚI: AUTH)
+// 4) Routes (MỚI: AUTH & USERS)
 // =====================
 app.use("/v1/auth", authRouter);
-app.use("/v1/user", userRouter);
+app.use("/v1/users", userRouter);
 
 // 5) Start server (kết nối DB rồi listen 1 lần)
 async function start() {
