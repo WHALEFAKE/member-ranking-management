@@ -3,23 +3,20 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
-
 export const optionalAuth = (req, res, next) => {
-    const tokenHeader = req.headers.token;
+  const tokenHeader = req.headers.token;
 
-    if(!tokenHeader) return next();
+  if (!tokenHeader) return next();
 
-    const parts = tokenHeader.split(" ");
+  const parts = tokenHeader.split(" ");
 
-    if(parts.length!==2 || parts[0] !== "Bearer") return next();
+  if (parts.length !== 2 || parts[0] !== "Bearer") return next();
 
-    const accessToken = parts[1];
-    jwt.verify(accessToken, process.env.JWT_ACCESS_KEY, (err, user)=>{
-        if(!err&&user){
-            req.user = user;//id or role
-            next();
-        }
-    });
-    
-}
+  const accessToken = parts[1];
+  jwt.verify(accessToken, process.env.JWT_ACCESS_KEY, (err, user) => {
+    if (!err && user) {
+      req.user = user; //id or role
+    }
+    next();
+  });
+};

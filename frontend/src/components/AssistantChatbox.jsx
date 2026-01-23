@@ -35,12 +35,20 @@ const AssistantChatbox = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
+      // Prepare history for the backend
+      // Map current messages to Gemini format: { role: "user"|"model", parts: [{ text: "..." }] }
+      const history = messages.slice(-20).map((msg) => ({
+        role: msg.sender === "user" ? "user" : "model",
+        parts: [{ text: msg.text }],
+      }));
+
       const response = await axios.post(
         "/api/assistant/send",
         {
           message: userText,
+          history: history,
         },
-        axiosConfig
+        axiosConfig,
       );
 
       const botReply = {
@@ -60,23 +68,7 @@ const AssistantChatbox = ({ isOpen, onClose }) => {
       setIsLoading(false);
     }
   };
-  useEffect(() => {
-    if (!isOpen) return;
-    const loadHistory = async () => {
-      try {
-        const res = await axios.get("/api/assistant/history?limit=20",
-          axiosConfig);
-        const serverMessages = res.data.messages || [];
 
-        if (serverMessages.length > 0) {
-          setMessages(serverMessages);
-        }
-      } catch (error) {
-        console.log("Load history failed: ", error);
-      }
-    };
-    loadHistory();
-  }, [isOpen, accessToken]);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
