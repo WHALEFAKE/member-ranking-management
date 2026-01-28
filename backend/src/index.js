@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import chatRoutes from "./routers/chatRoutes.js";
 import authRouter from "./routers/auth.js";
 import userRouter from "./routers/user.js";
+import gemLogsRouter from "./routers/gemLogs.js";
 
 // 1) Load config
 dotenv.config();
@@ -82,6 +83,7 @@ app.get("/api/members", (req, res) => {
 // =====================
 app.use("/v1/auth", authRouter);
 app.use("/v1/users", userRouter);
+app.use("/v1/gem-logs", gemLogsRouter);
 
 // 5) Start server (kết nối DB rồi listen 1 lần)
 async function start() {
