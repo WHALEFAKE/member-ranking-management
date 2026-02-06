@@ -10,12 +10,12 @@ const userController = {
   getAllUsers: async (req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT 
-          id, username, email, roles, club_role, 
+        `SELECT
+          id, username, email, roles, club_role,
           total_gems, regular_session_count, is_active,
           join_club_at, avatar, is_male, address,
           created_at, updated_at
-        FROM users 
+        FROM users
         ORDER BY created_at DESC`,
       );
 
@@ -57,8 +57,8 @@ const userController = {
         INSERT INTO users
         (username, email, password, avatar, is_male, address, club_role, roles)
         VALUES($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING 
-          id, username, email, roles, club_role, 
+        RETURNING
+          id, username, email, roles, club_role,
           total_gems, regular_session_count, is_active,
           join_club_at, avatar, is_male, address,
           created_at, updated_at;
@@ -111,7 +111,7 @@ const userController = {
       return res.status(500).json({ error: error.message });
     }
   },
-  
+
   //
   // =========================================================
   // SELF ENDPOINTS
@@ -123,12 +123,12 @@ const userController = {
       const userId = req.user.id;
 
       const { rows } = await pool.query(
-        `SELECT 
-          id, username, email, roles, club_role, 
+        `SELECT
+          id, username, email, roles, club_role,
           total_gems, regular_session_count, is_active,
           join_club_at, avatar, is_male, address,
           created_at, updated_at
-        FROM users 
+        FROM users
         WHERE id = $1`,
         [userId],
       );
@@ -180,11 +180,11 @@ const userController = {
 
       const { rows } = await pool.query(
         `
-        UPDATE users 
+        UPDATE users
         SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP
         WHERE id = $${paramCount}
-        RETURNING 
-          id, username, email, roles, club_role, 
+        RETURNING
+          id, username, email, roles, club_role,
           total_gems, regular_session_count, is_active,
           join_club_at, avatar, is_male, address,
           created_at, updated_at;
@@ -211,9 +211,9 @@ const userController = {
   getRanking: async (req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT 
+        `SELECT
           id, username, avatar, club_role, total_gems, roles
-        FROM users 
+        FROM users
         WHERE is_active = true
         ORDER BY total_gems DESC, created_at ASC
         LIMIT 100`,
@@ -233,12 +233,12 @@ const userController = {
 
       // Get user basic info
       const { rows: userRows } = await pool.query(
-        `SELECT 
-          id, username, email, roles, club_role, 
+        `SELECT
+          id, username, email, roles, club_role,
           total_gems, regular_session_count, is_active,
           join_club_at, avatar, is_male, address,
           created_at, updated_at
-        FROM users 
+        FROM users
         WHERE id = $1`,
         [id],
       );
@@ -251,7 +251,7 @@ const userController = {
 
       // Get user's gem logs (activity history)
       const { rows: gemLogs } = await pool.query(
-        `SELECT 
+        `SELECT
           gl.id, gl.amount, gl.reason, gl.source_kind,
           gl.activity_id, gl.checkin_id, gl.claim_id,
           gl.evidence, gl.created_at,
@@ -266,7 +266,7 @@ const userController = {
 
       // Get user's check-ins count
       const { rows: checkInStats } = await pool.query(
-        `SELECT 
+        `SELECT
           COUNT(*) as total_checkins,
           COUNT(CASE WHEN status = 'attended' THEN 1 END) as attended_count,
           COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count

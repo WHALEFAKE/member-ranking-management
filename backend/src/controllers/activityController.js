@@ -9,13 +9,13 @@ const activityController = {
   getAllActivities: async (req, res) => {
     try {
       const { rows } = await pool.query(
-        `SELECT 
+        `SELECT
           id, title, type, starts_at, ends_at,
           location, description, checkin_enabled,
           requires_evidence, status, gem_amount,
           created_at, updated_at
-        FROM activities 
-        ORDER BY starts_at DESC`
+        FROM activities
+        ORDER BY starts_at DESC`,
       );
 
       return res.status(200).json({ activities: rows });
@@ -31,14 +31,14 @@ const activityController = {
       const { id } = req.params;
 
       const { rows } = await pool.query(
-        `SELECT 
+        `SELECT
           id, title, type, starts_at, ends_at,
           location, description, checkin_enabled,
           requires_evidence, status, gem_amount,
           created_at, updated_at
-        FROM activities 
+        FROM activities
         WHERE id = $1`,
-        [id]
+        [id],
       );
 
       if (rows.length === 0) {
@@ -81,7 +81,7 @@ const activityController = {
 
       const { rows } = await pool.query(
         `INSERT INTO activities
-        (title, type, starts_at, ends_at, location, description, 
+        (title, type, starts_at, ends_at, location, description,
          checkin_enabled, requires_evidence, status, gem_amount)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *`,
@@ -96,7 +96,7 @@ const activityController = {
           requiresEvidence,
           status,
           gemAmount,
-        ]
+        ],
       );
 
       return res.status(201).json({ activity: rows[0] });
@@ -176,11 +176,11 @@ const activityController = {
       values.push(id);
 
       const { rows } = await pool.query(
-        `UPDATE activities 
+        `UPDATE activities
         SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP
         WHERE id = $${paramCount}
         RETURNING *`,
-        values
+        values,
       );
 
       if (rows.length === 0) {
@@ -201,7 +201,7 @@ const activityController = {
 
       const { rows } = await pool.query(
         "DELETE FROM activities WHERE id = $1 RETURNING id, title",
-        [id]
+        [id],
       );
 
       if (rows.length === 0) {
@@ -226,7 +226,7 @@ const activityController = {
       // First check if activity exists
       const { rows: activityRows } = await pool.query(
         "SELECT id, title, type, status, gem_amount FROM activities WHERE id = $1",
-        [id]
+        [id],
       );
 
       if (activityRows.length === 0) {
@@ -235,20 +235,24 @@ const activityController = {
 
       // Get participants (check-ins) with user info
       const { rows: participants } = await pool.query(
-        `SELECT 
+        `SELECT
           c.id, c.user_id, c.checked_at, c.status, c.evidence, c.created_at,
           u.username, u.avatar, u.email, u.club_role
         FROM check_ins c
         JOIN users u ON c.user_id = u.id
         WHERE c.activity_id = $1
         ORDER BY c.checked_at DESC`,
-        [id]
+        [id],
       );
 
       // Count statistics
       const totalParticipants = participants.length;
-      const attendedCount = participants.filter(p => p.status === "attended").length;
-      const pendingCount = participants.filter(p => p.status === "pending").length;
+      const attendedCount = participants.filter(
+        (p) => p.status === "attended",
+      ).length;
+      const pendingCount = participants.filter(
+        (p) => p.status === "pending",
+      ).length;
 
       return res.status(200).json({
         activity: activityRows[0],
@@ -261,6 +265,65 @@ const activityController = {
       });
     } catch (error) {
       console.log("Get activity participants error: ", error);
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  // =========================================================
+  // MEMBER ENDPOINTS
+  // =========================================================
+
+  // POST /v1/activities/:id/join - Join an activity (Authenticated user)
+  joinActivity: async (req, res) => {
+    try {
+      const { id: activityId } = req.params;
+      const userId = req.user.id; // From verifyToken middleware
+
+      // 1. Check if activity exists
+      const { rows: activityRows } = await pool.query(
+        `SELECT id, title, status
+        FROM activities
+        WHERE id = $1`,
+        [activityId],
+      );
+
+      if (activityRows.length === 0) {
+        return res.status(404).json({ error: "Activity not found" });
+      }
+
+      const activity = activityRows[0];
+
+      // 2. Check if activity is still open (optional, e.g., not 'completed')
+      if (activity.status === "completed") {
+        return res
+          .status(400)
+          .json({ error: "This activity is already completed" });
+      }
+
+      // 3. Try to join (insert into check_ins)
+      try {
+        const { rows } = await pool.query(
+          `INSERT INTO check_ins (activity_id, user_id, status)
+           VALUES ($1, $2, 'pending')
+           RETURNING *`,
+          [activityId, userId],
+        );
+
+        return res.status(201).json({
+          message: "Joined activity successfully",
+          checkIn: rows[0],
+        });
+      } catch (innerError) {
+        // Handle unique constraint (already joined)
+        if (innerError.code === "23505") {
+          return res
+            .status(400)
+            .json({ error: "You have already joined this activity" });
+        }
+        throw innerError;
+      }
+    } catch (error) {
+      console.log("Join activity error: ", error);
       return res.status(500).json({ error: error.message });
     }
   },

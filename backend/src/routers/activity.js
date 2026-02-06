@@ -46,4 +46,15 @@ router.get(
     activityController.getActivityParticipants
 );
 
+// =========================================================
+// MEMBER ENDPOINTS (Require authentication)
+// =========================================================
+
+// POST /v1/activities/:id/join - Join an activity
+router.post(
+    "/:id/join",
+    middlewareController.verifyToken,
+    activityController.joinActivity
+);
+
 export default router;
